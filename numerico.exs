@@ -43,7 +43,107 @@ def min_cua(l1,l2) do
   b = (sy-m*sx)/n
   [m,b]
 end
+#----------------------------------------------------------------------
+# Runge-Kutta para ED de primer orden
+#----------------------------------------------------------------------
+# Resolver: y'=e^t    y(0)=1    Hallar y(1)
+# Ejecutar con:  Analisis.runge_ed1(5,0,1,1)
+def g1(t, x), do: (:math.exp(t))
 
+
+def runge_ed1(n,t,x,a), do: runge_ed1_aux(n,t,x,(a-t)/n)
+def runge_ed1_aux(0,_,x,_), do: x
+def runge_ed1_aux(n,t,x,h) do
+   k11 = h*g1(t, x)
+
+
+   k21 = h*g1((t+h/2), (x+k11/2))
+
+   k31 = h*g1((t+h/2), (x+k21/2))
+
+   k41 = h*g1((t+h), (x+k31))
+
+   runge_ed1_aux(n-1,t+h, (x+(1/6)*(k11+2*k21+2*k31+k41)),h)
+end
+#----------------------------------------------------------------------
+# Runge-Kutta para ED de segundo orden
+#----------------------------------------------------------------------
+# Resolver: y''+2y'+y=e^t    y(0)=1   y'(0)=0   Hallar y(1)
+# Ejecutar con: Analisis.runge_ed2(5,0,0,1,1)
+def h1(t, x, y), do: (:math.exp(t))-y-2*x
+def h2(t, x, y), do: x
+
+def runge_ed2(n,t,x,y,a), do: runge_ed2_aux(n,t,x,y,(a-t)/n)
+def runge_ed2_aux(0,_,x,y,_), do: [{x,y}]
+def runge_ed2_aux(n,t,x,y,h) do
+   k11 = h*h1(t, x, y)
+   k12 = h*h2(t, x, y)
+
+   k21 = h*h1((t+h/2), (x+k11/2), (y+k12/2))
+   k22 = h*h2((t+h/2), (x+k11/2), (y+k12/2))
+
+   k31 = h*h1((t+h/2), (x+k21/2), (y+k22/2))
+   k32 = h*h2((t+h/2), (x+k21/2), (y+k22/2))
+
+   k41 = h*h1((t+h), (x+k31), (y+k32))
+   k42 = h*h2((t+h), (x+k31), (y+k32))
+
+   [{x,y}] ++ runge_ed2_aux(n-1,t+h, (x+(1/6)*(k11+2*k21+2*k31+k41)), (y+(1/6)*(k12+2*k22+2*k32+k42)), h)
+end
+#----------------------------------------------------------------------
+# Runge-Kutta para ED de tercer orden
+#----------------------------------------------------------------------
+# Resolver: y'''+ 4y''+ y'-6y=e^t    y(0)=1   y'(0)=0   y''(0)=2    Hallar y(1)
+# ejecutar con: Analisis.runge_ed3(5,0,0,1,2,1)
+def p1(t, x, y, z), do: z
+def p2(t, x, y, z), do: x
+def p3(t, x, y, z), do: (:math.exp(t))+6*y-x-4*z
+def runge_ed3(n,t,x,y,z,a), do: runge_ed3_aux(n,t,x,y,z,(a-t)/n)
+def runge_ed3_aux(0,_,x,y,z,_), do: [{x,y,z}]
+def runge_ed3_aux(n,t,x,y,z,h) do
+   k11 = h*p1(t, x, y, z)
+   k12 = h*p2(t, x, y, z)
+   k13 = h*p3(t, x, y, z)
+   k21 = h*p1((t+h/2), (x+k11/2), (y+k12/2), (z+k13/2))
+   k22 = h*p2((t+h/2), (x+k11/2), (y+k12/2), (z+k13/2))
+   k23 = h*p3((t+h/2), (x+k11/2), (y+k12/2), (z+k13/2))
+   k31 = h*p1((t+h/2), (x+k21/2), (y+k22/2), (z+k23/2))
+   k32 = h*p2((t+h/2), (x+k21/2), (y+k22/2), (z+k23/2))
+   k33 = h*p3((t+h/2), (x+k21/2), (y+k22/2), (z+k23/2))
+   k41 = h*p1((t+h), (x+k31), (y+k32), (z+k33))
+   k42 = h*p2((t+h), (x+k31), (y+k32), (z+k33))
+   k43 = h*p3((t+h), (x+k31), (y+k32), (z+k33))
+   [{x,y,z}] ++ runge_ed3_aux(n-1,t+h, (x+(1/6)*(k11+2*k21+2*k31+k41)), (y+(1/6)*(k12+2*k22+2*k32+k42)), (z+(1/6)*(k13+2*k23+2*k33+k43)), h)
+end
+#----------------------------------------------------------------------
+# Runge-Kutta para sistemas de ED 2x2
+#----------------------------------------------------------------------
+# Resolver: x'= 3*x+2*y+2*t
+#           y'= x+4*y-7
+# Con el valor inicial: x(0)=0    y(0)=1
+
+# ejecutar con: Analisis.kutta_2x2(5, 0, 0, 1, 1)
+
+def f1(t, x, y), do: 3*x+2*y+2*t
+def f2(t, x, y), do: x+4*y-7
+
+def kutta_2x2(n,t,x,y,a), do: kutta_2x2_a(n,t,x,y,(a-t)/n)
+def kutta_2x2_a(0,_,x,y,_), do: [{x,y}]
+def kutta_2x2_a(n,t,x,y,h) do
+   k11 = h*f1(t, x, y)
+   k12 = h*f2(t, x, y)
+
+   k21 = h*f1((t+h/2), (x+k11/2), (y+k12/2))
+   k22 = h*f2((t+h/2), (x+k11/2), (y+k12/2))
+
+   k31 = h*f1((t+h/2), (x+k21/2), (y+k22/2))
+   k32 = h*f2((t+h/2), (x+k21/2), (y+k22/2))
+
+   k41 = h*f1((t+h), (x+k31), (y+k32))
+   k42 = h*f2((t+h), (x+k31), (y+k32))
+
+   [{x,y}] ++ kutta_2x2_a(n-1,t+h, (x+(1/6)*(k11+2*k21+2*k31+k41)), (y+(1/6)*(k12+2*k22+2*k32+k42)), h)
+end
 #----------------------------------------------------------------------
 # Runge-Kutta para sistemas de ED 3x3
 #----------------------------------------------------------------------
